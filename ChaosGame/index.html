@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../Menu/styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <title>Chaos game</title>
+</head>
+
+<body>
+    <button id='backbutton'>Back</button>
+    <button id='start'>Start</button>
+    <button id='stop'>Stop</button> <label>Vertices:</label>
+    <input type="range" min="3" max="12" value="3" class="slider" id="vertices">
+    <label id='verticeslabel'>3</label>
+    <input type="radio" id="classic" name="rules" checked='checked'>
+    <input type="radio" id="noduplicates" name="rules">
+    <input type="radio" id="noneighbour" name="rules">
+    <label id='activerule'>Classic</label>
+    <br>
+    <canvas id='canvas' width=800 height=800></canvas>
+
+</body>
+
+<script src='app.js'></script>
+<script src='../Menu/back.js'></script>
+
+</html>
