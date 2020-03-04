@@ -1,0 +1,21 @@
+button {
+	background-color: #5882FA;
+	border: none;
+	color: white;
+	min-width: 100px;
+	margin: 5px;
+	padding: 5px 20px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+}
+
+label {
+	display: inline-block;
+	margin-left: 30px;
+}
+
+#smallcanvas{
+	margin-bottom: 700px;
+}
