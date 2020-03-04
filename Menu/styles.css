@@ -1,0 +1,84 @@
+.main {
+	margin-top: 100px;
+	text-align: center;
+}
+
+.menubtn {
+	background-color: #5882FA;
+	/* Green */
+	border: none;
+	color: white;
+	width:30%;
+	height: 80px;
+	margin: 5px;
+	padding: 15px 32px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+}
+
+.slider, button {
+	-webkit-appearance: none;
+	appearance: none;
+	outline: none;
+	opacity: 0.8;
+	-webkit-transition: .2s;
+	transition: opacity .2s;
+}
+
+.slider:hover, button:hover {
+	opacity: 1;
+}
+
+.slider {
+	margin-right: 20px;
+	margin-left: 5px;
+	width: 100px;
+	height: 10px;
+	background: #d3d3d3;
+}
+
+.slider::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 15px;
+	height: 25px;
+	background: #5882FA;
+	cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+	width: 15px;
+	height: 25px;
+	background: #5882FA;
+	cursor: pointer;
+}
+
+#backbutton {
+	position: absolute;
+	right: 0;
+	height: 30px;
+	width: 15%;
+}
+
+button {
+	background-color: #5882FA;
+	border: none;
+	color: white;
+	min-width: 100px;
+	margin: 5px;
+	padding: 5px 20px;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 16px;
+}
+
+canvas {
+	display: inline-block;
+	border-radius: 10px;
+	border-width: 1px;
+	border-color: #5882FA;
+	border-style: solid;
+}
