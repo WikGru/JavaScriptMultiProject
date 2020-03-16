@@ -10,3 +10,7 @@ document.getElementById('btn-kohonnen').onclick = function(){
 document.getElementById('btn-chaos').onclick = function(){
     document.location.replace('../ChaosGame/index.html')
 }
+
+document.getElementById('btn-virus').onclick = function(){
+    document.location.replace('../Virus/index.html')
+}
