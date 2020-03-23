@@ -1,6 +1,6 @@
 class Human {
     screen = { w: 0, h: 0 }
-    colliderTimeOut = 0.15;
+    colliderTimeOut = 0.3;
     colliderTimer = 0;
     size = 10;
     speed = 3;
@@ -8,9 +8,9 @@ class Human {
     wasSick = false;
     isSick = false;
 
-    sickColor = "#8800FF"
-    immuneColor = "#00FFFF"
-    healthyColor = "#22AA22"
+    sickColor = "#db3623"
+    immuneColor = "#52bab1"
+    healthyColor = "#65d446"
 
     activeColor = "#FFFFFF"
 
@@ -65,14 +65,24 @@ class Human {
     }
 
     manageCollisionWith(human) {
-        if ((human.isSick && this.isSick) || (!human.isSick || !this.isSick) ) {
-            if(this.colliderTimer <=0) {
-                this.dir = { x: -this.dir.x, y: -this.dir.y };
-                this.colliderTimer = this.colliderTimeOut;
-            } else{
-                this.colliderTimer -=1;
+
+
+        if (this.colliderTimer <= 0) {
+            this.tempDir = this.dir;
+            if (human.dir.x != 0 && human.dir.y != 0) {
+                this.dir = human.dir
+                human.dir = this.tempDir;
+                console.log("dupa")
+            } else {
+                // this.dir = -this.dir;
+
             }
+
+            this.colliderTimer = this.colliderTimeOut;
+        } else {
+            this.colliderTimer -= 1;
         }
+
         if (human.isSick && !this.wasSick) {
             this.isSick = true;
         }
@@ -83,7 +93,6 @@ class Human {
             this.dist = Math.hypot(this.pos.x - human.pos.x, this.pos.y - human.pos.y)
             if (this.dist > 0 && this.dist < this.size) {
                 this.manageCollisionWith(human);
-                console.log(this.dist)
             }
         })
     }
