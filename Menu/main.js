@@ -14,3 +14,7 @@ document.getElementById('btn-chaos').onclick = function(){
 document.getElementById('btn-virus').onclick = function(){
     document.location.replace('../Virus/index.html')
 }
+
+document.getElementById('btn-ants').onclick = function(){
+    document.location.replace('../Ants/index.html')
+}

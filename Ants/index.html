@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../Menu/styles.css">
+    <link rel="stylesheet" href="styles.css">
+    <title>Ants</title>
+</head>
+
+<body>
+    <button id='backbutton'>Back</button>
+    
+    <button id='start'>Start</button>
+    <button id='stop'>Stop</button>
+
+    Simulation speed:
+    <input type="range" min="1" max="99" value="50" class="slider" id="speed">
+    | Draw Feromones:
+    <input type="checkbox" id="drawFeromones" name="drawFeromones" checked>
+    | Wall
+    <input type="range" min="0" max="1" value="0" class="slider" id="draw"> Food
+
+    </br>
+    <canvas id='canvas' width=1000 height=600></canvas>
+
+    <script src='e_Type.js'></script>
+    <script src='Wall.js'></script>
+    <script src='Feromone.js'></script>
+    <script src='Food.js'></script>
+    <script src='Ant.js'></script>
+    <script src='app.js'></script>
+    <script src='../Menu/back.js'></script>
+
+</body>
+
+</html>
