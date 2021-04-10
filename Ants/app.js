@@ -124,10 +124,10 @@ function draw(entity) {
                 }
                 ctx.rotate(Math.PI / 180 * 90 + Math.atan2(entity.dir.y, entity.dir.x));
                 ctx.beginPath();
-                ctx.lineTo(0, -5);
-                ctx.lineTo(3, 3);
-                ctx.lineTo(0, 1)
-                ctx.lineTo(-3, 3);
+                ctx.lineTo(0, -3);
+                ctx.lineTo(1, 1);
+                ctx.lineTo(0, 0)
+                ctx.lineTo(-1, 1);
                 ctx.fill();
             }
             break;
@@ -138,9 +138,10 @@ function draw(entity) {
     ctx.restore();
 }
 
+var homeSize = 20
 var antList = []
 for (var i = 0; i < 100; i++) {
-    antList[i] = new Ant(700 - Math.random() * 400, 400 - Math.random() * 200, { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 });
+    antList[i] = new Ant(500 + (homeSize/2) - Math.random() * homeSize, 300 + (homeSize/2) - Math.random() * homeSize, { x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 });
 }
 
 function run() {
@@ -148,7 +149,7 @@ function run() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'rgb(244, 247, 176)'
     ctx.beginPath();
-    ctx.arc(500, 300, 100, 0, 2 * Math.PI);
+    ctx.arc(500, 300, homeSize, 0, 2 * Math.PI);
     ctx.fill();
 
     foodList.forEach((food) => {

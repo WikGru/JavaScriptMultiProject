@@ -32,8 +32,8 @@ class Ant {
     DeviateDir(deltaTime){
         if (this.dirStrength > 0) return
         var newDir = {x: 0.5 - Math.random(), y: 0.5 - Math.random()}
-        this.dir.x = this.dir.x + (newDir.x * 10) * deltaTime
-        this.dir.y = this.dir.y + (newDir.y * 10) * deltaTime
+        this.dir.x += (newDir.x * 10) * deltaTime
+        this.dir.y += (newDir.y * 10) * deltaTime
         if(this.dir.x == 0 && this.dir.y == 0) this.dir.x = 0.5 - Math.random()
         this.NormalizeDir()
     }
@@ -55,12 +55,12 @@ class Ant {
     }
 
     Move(deltaTime, feromoneList, wallList, foodList) {
-        if (this.purpose == e_Type.HOME && this.DistanceToObject(new Wall(500, 300)) < 100){
+        if (this.purpose == e_Type.HOME && this.DistanceToObject(new Wall(500, 300)) < 20){
             this.purpose = e_Type.FOOD
             this.dir.x = -this.dir.x
             this.dir.y = -this.dir.y
             this.prevFeromone.pos = {x: 500, y: 300}
-            this.dirStrength = 10
+            this.dirStrength = 0
             this.feromoneDelay = 1.5
         }
 
@@ -71,7 +71,7 @@ class Ant {
         var newPos = new Wall(newPosX, newPosY)
 
         this.ManageCollisions(wallList, newPos)
-        foodList = this.ManageFoodGathering(foodList)
+        foodList, feromoneList = this.ManageFoodGathering(foodList, feromoneList)
 
         this.pos.x = newPosX
         this.pos.y = newPosY
@@ -81,6 +81,9 @@ class Ant {
         if (this.pos.x < 0 || this.pos.x > 1000 || this.pos.y < 0 || this.pos.y > 600) {
             this.pos.x = 500
             this.pos.y = 300
+            this.dir.x = Math.random()
+            this.dir.y = Math.random()
+            this.NormalizeDir()
         }
         
 
@@ -92,7 +95,7 @@ class Ant {
         this.lastFeromone = 1 + Math.random() * this.feromoneDelay
         var newFeromone = new Feromone(this.pos, this.DirTowards(this.prevFeromone), this.purpose)
         feromoneList.push(newFeromone)
-        this.prevFeromone.pos = {x: newFeromone.pos.x, y: newFeromone.y}
+        this.prevFeromone = newFeromone
         return feromoneList
     }
 
@@ -100,8 +103,9 @@ class Ant {
         feromoneList.forEach((feromone) => {
             if (this.DistanceToObject(feromone) < 6 && feromone.type != this.purpose && this.feromoneInfluenceDelay < 0) {
                 this.SteerTowardsDir(feromone.dir, feromone.strength)
-                this.dirStrength = 10
+                this.dirStrength = 2
                 this.feromoneInfluenceDelay = 0.3
+                feromone.strength += 0.4
                 // this.dir = feromone.dir
             }
         })
@@ -116,25 +120,33 @@ class Ant {
         // })
     }
 
-    ManageFoodGathering(foodList){
+    ManageFoodGathering(foodList, feromoneList){
         if (this.purpose == e_Type.FOOD) {
             foodList.forEach((food) => {
                 var dist = this.DistanceToObject(food)
                 if (dist < 12) {
-                    foodList.splice(foodList.indexOf(food), 1)
+                    food.DecreaseAmount()
+                    if (food.amount <= 0) {
+                        foodList.splice(foodList.indexOf(food), 1)
+                    }
                     this.purpose = e_Type.HOME
-                    this.dir.x = -this.dir.x
-                    this.dir.y = -this.dir.y
-                    this.dirStrength = 10
+                    // this.PlaceFeromone(feromoneList)
+                    this.dir = {x: -this.dir.x, y: -this.dir.y}
+                    this.dirStrength = 2
                     this.feromoneDelay = 0.5
-                    return foodList
-                } else if (dist < 40){
+                    this.prevFeromone.pos = { x: this.pos.x, y: this.pos.y }
+                    return foodList, feromoneList
+                }
+            })
+            foodList.forEach((food) => {
+                var dist = this.DistanceToObject(food)
+                if (dist < 40) {
                     this.SteerTowardsDir(this.DirTowards(food), 5)
-                    return foodList
+                    return foodList, feromoneList
                 }
             })
         }
-        return foodList
+        return foodList,feromoneList
     }
 
     DistanceToObject(obj) {
