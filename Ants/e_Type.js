@@ -1,4 +1,4 @@
 e_Type =  {
-    HOME: 0,
-    FOOD: 1
+    TOWARDS_HOME: 0,
+    TOWARDS_FOOD: 1
 }

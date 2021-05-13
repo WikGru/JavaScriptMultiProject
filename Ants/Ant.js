@@ -1,156 +1,224 @@
 class Ant {
-    purpose = e_Type.FOOD
+    purpose = e_Type.TOWARDS_FOOD
     velocity = 60
+    life = {amount: 0, type: this.purpose}
     dirStrength = 0
-    feromoneDelay = 2
-    lastFeromone = 0
-    prevFeromone = new Feromone({x: 500, y: 300}, {x: 0, y: 0}, e_Type.HOME)
-    feromoneInfluenceDelay = 0.3
+    pheromoneInfluenceDelay = 0
+    pheromoneStandardDelay = 1
+    pheromonePlaceDelay = 0
+    prevPheromone = new Pheromone({x: 500, y: 300}, {x: 0, y: 0}, e_Type.TOWARDS_HOME)
 
-
-    constructor(posx, posy, dir) {
-        this.lastFeromone = 0
+    constructor(posx, posy, dir, data) {
+        this.pheromonePlaceDelay = 0
         this.pos = { x: posx, y: posy }
-        this.dir = dir
-        this.NormalizeDir()
-    }
-
-    ManageTime(deltaTime){
-        //Decrease dirStrength
-        this.dirStrength -= deltaTime
-        if (this.dirStrength < 0) this.dirStrength = 0
-
-        //Place feromone
-        this.lastFeromone -= deltaTime
-        this.feromoneInfluenceDelay -= deltaTime
+        this.dir = this.NormalizeDir(dir)
+        this.life.amount = data.ANT_LIFE
     }
 
     GetPurpose() {
-        return this.e_purpose
+        return this.purpose
     }
 
-    DeviateDir(deltaTime){
-        if (this.dirStrength > 0) return
-        var newDir = {x: 0.5 - Math.random(), y: 0.5 - Math.random()}
-        this.dir.x = this.dir.x + (newDir.x * 10) * deltaTime
-        this.dir.y = this.dir.y + (newDir.y * 10) * deltaTime
-        if(this.dir.x == 0 && this.dir.y == 0) this.dir.x = 0.5 - Math.random()
-        this.NormalizeDir()
+    NormalizeDir(dir) {
+        if (Math.abs(dir.x + dir.y)) {
+            var length = Math.abs(dir.x) + Math.abs(dir.y)
+            dir.x = dir.x / length
+            dir.y = dir.y / length
+        }
+        return dir
     }
 
-    NormalizeDir() {
-        if (Math.abs(this.dir.x + this.dir.y)) {
-            var length = Math.abs(this.dir.x) + Math.abs(this.dir.y)
-            this.dir.x = this.dir.x / length
-            this.dir.y = this.dir.y / length
+    DeviateDir(dt, data) {
+        this.dir.x += (Math.random() - 0.5) * data.DIR_ADJUSTMENT * dt
+        this.dir.y += (Math.random() - 0.5) * data.DIR_ADJUSTMENT * dt
+        this.dir = this.NormalizeDir(this.dir)
+    }
+
+    Update(dt, data) {
+        this.life.amount -= dt
+        if(this.life.type != this.purpose){
+            this.life.type = this.purpose
+            this.life.amount = data.ANT_LIFE
+        }
+        if(this.life.amount <= 0){
+            this.TeleportBackHome(data)
+        }
+
+        switch(this.purpose){
+            case e_Type.TOWARDS_FOOD:
+                this.UpdateGoingForFood(dt, data)
+                break
+            case e_Type.TOWARDS_HOME:
+                this.UpdateGoingHome(dt, data)
+                break
+            default:
+                console.log("Invalid purpose.")
+        }
+
+        this.dirStrength -= dt
+        this.HandlePheromonePlacement(dt, data)
+        this.Move(dt)
+
+        if(this.pos.x >= 1000 || this.pos.x <= 0 || this.pos.y >= 600 || this.pos.y <= 0){
+            this.TeleportBackHome(data)
         }
     }
 
-    SteerTowardsDir(dir, strength) {
-        // 1 - 10
-        this.dir.x += dir.x * (strength / 5);
-        this.dir.y += dir.y * (strength / 5);
-
-        this.NormalizeDir()
-    }
-
-    Move(deltaTime, feromoneList, wallList, foodList) {
-        if (this.purpose == e_Type.HOME && this.DistanceToObject(new Wall(500, 300)) < 100){
-            this.purpose = e_Type.FOOD
-            this.dir.x = -this.dir.x
-            this.dir.y = -this.dir.y
-            this.prevFeromone.pos = {x: 500, y: 300}
-            this.dirStrength = 10
-            this.feromoneDelay = 1.5
-        }
-
-        this.ManageFeromoneInfluence(feromoneList)
-        this.DeviateDir(deltaTime)
-        var newPosX = this.pos.x + this.dir.x * (this.velocity * deltaTime)
-        var newPosY = this.pos.y + this.dir.y * (this.velocity * deltaTime)
-        var newPos = new Wall(newPosX, newPosY)
-
-        this.ManageCollisions(wallList, newPos)
-        foodList = this.ManageFoodGathering(foodList)
-
-        this.pos.x = newPosX
-        this.pos.y = newPosY
-
-        if (this.lastFeromone < 0) this.PlaceFeromone(feromoneList)
-
-        if (this.pos.x < 0 || this.pos.x > 1000 || this.pos.y < 0 || this.pos.y > 600) {
-            this.pos.x = 500
-            this.pos.y = 300
-        }
-        
-
-        this.ManageTime(deltaTime)
-        return foodList, feromoneList
-    }
-
-    PlaceFeromone(feromoneList){
-        this.lastFeromone = 1 + Math.random() * this.feromoneDelay
-        var newFeromone = new Feromone(this.pos, this.DirTowards(this.prevFeromone), this.purpose)
-        feromoneList.push(newFeromone)
-        this.prevFeromone.pos = {x: newFeromone.pos.x, y: newFeromone.y}
-        return feromoneList
-    }
-
-    ManageFeromoneInfluence(feromoneList){
-        feromoneList.forEach((feromone) => {
-            if (this.DistanceToObject(feromone) < 6 && feromone.type != this.purpose && this.feromoneInfluenceDelay < 0) {
-                this.SteerTowardsDir(feromone.dir, feromone.strength)
-                this.dirStrength = 10
-                this.feromoneInfluenceDelay = 0.3
-                // this.dir = feromone.dir
+    UpdateGoingForFood(dt, data){
+        if(this.HandlePickingFood(data.food)){
+            this.purpose = e_Type.TOWARDS_HOME
+            this.dirStrength = data.DIR_STRENGTH
+            this.dir = this.ReverseDir(this.dir)
+        } else {
+            var pheromone = this.CheckForPheromones(dt, data)
+            if(pheromone){
+                this.dir = this.SteerDirTowards(this.dir, pheromone, data)
             }
-        })
+            
+            var foodInRange = this.CheckForFood(data)
+            if(foodInRange){
+                this.dir = this.SteerDirTowards(this.dir, this.GetDirTowardsObject(foodInRange), data)
+            } else if(this.dirStrength <= 0) {
+                this.DeviateDir(dt, data)
+            }
+        }
     }
 
-    ManageCollisions(wallList, newPos){
-        // wallList.forEach((wall) => {
-        //     var distance = this.DistanceToObject(wall)
-        //     if (distance < 25 && this.DistanceToObject(wall) > this.DistanceBetweenObjects(newPos, wall)){
-        //         this.dirStrength = 0
-        //     } 
-        // })
+    UpdateGoingHome(dt, data) {
+        if(this.DistanceToObject(data.HOME) <= data.HOME_RADIUS){
+            this.purpose = e_Type.TOWARDS_FOOD
+            this.dirStrength = data.DIR_STRENGTH
+            this.dir = this.ReverseDir(this.dir)
+        } else {
+            var pheromone = this.CheckForPheromones(dt, data)
+            if(pheromone.x != 0 || pheromone.y != 0){
+                this.dirStrength = data.DIR_STRENGTH
+                this.dir = this.SteerDirTowards(this.dir, pheromone, data)
+            } else if(this.dirStrength <= 0){
+                this.DeviateDir(dt, data)
+            }
+        }
+    }
+    
+    TeleportBackHome(data){
+        this.dirStrength = 0
+        this.pheromoneInfluenceDelay = 0
+        this.pos = {x: 500, y: 300}
+        this.dir = {x: Math.random() * 2 - 1, y: Math.random() * 2 - 1 }
+        this.dir = this.NormalizeDir(this.dir)
+        this.life.amount = data.ANT_LIFE
     }
 
-    ManageFoodGathering(foodList){
-        if (this.purpose == e_Type.FOOD) {
-            foodList.forEach((food) => {
-                var dist = this.DistanceToObject(food)
-                if (dist < 12) {
-                    foodList.splice(foodList.indexOf(food), 1)
-                    this.purpose = e_Type.HOME
-                    this.dir.x = -this.dir.x
-                    this.dir.y = -this.dir.y
-                    this.dirStrength = 10
-                    this.feromoneDelay = 0.5
-                    return foodList
-                } else if (dist < 40){
-                    this.SteerTowardsDir(this.DirTowards(food), 5)
-                    return foodList
+    CheckForPheromones(dt, data){
+        this.pheromoneInfluenceDelay -= dt
+        var pheromoneInRange = {x: 0, y: 0}
+        
+        if(this.pheromoneInfluenceDelay <= 0){            
+            data.pheromones.forEach(element => {
+                if(element.type == this.purpose && this.DistanceToObject(element) <= data.ANT_PHEROMONE_SIGHT){
+                    pheromoneInRange.x += (element.dir.x * (element.strength / data.PHEROMONE_STRENGTH_TOFOOD))
+                    pheromoneInRange.y += (element.dir.y * (element.strength / data.PHEROMONE_STRENGTH_TOFOOD))
                 }
             })
+            if(this.pheromonePlaceDelay <= 0  && (pheromoneInRange.x != 0 || pheromoneInRange.y != 0)){
+                this.pheromoneInfluenceDelay = data.DELAY_AFTER_PHEROMONE_INFLUENCE
+                this.dirStrength = data.DIR_STRENGTH
+                this.pheromonePlaceDelay = data.PHEROMONE_PLACEMENT_DELAY_TOFOOD
+                this.PlacePheromone(data, pheromoneInRange)
+            }
         }
-        return foodList
+        return this.NormalizeDir(pheromoneInRange)
     }
 
-    DistanceToObject(obj) {
-        var distx = Math.abs(this.pos.x - obj.pos.x)
-        var disty = Math.abs(this.pos.y - obj.pos.y)
-        return Math.sqrt(distx**2 + disty**2)
+    CheckForFood(data){
+        var foodInRange = false
+        data.food.forEach(element => {
+            if(this.DistanceToObject(element) <= data.ANT_FOOD_SIGHT){
+                foodInRange = element
+            }
+        })
+        return foodInRange
+    }
+
+    Move(dt){
+        this.pos.x += this.dir.x * this.velocity * dt
+        this.pos.y += this.dir.y * this.velocity * dt
+    }
+
+    HandlePickingFood(food){
+        var isFoodPicked = false
+        food.forEach(element => {
+            if(this.DistanceToObject(element) <= 10){
+                isFoodPicked = true
+                element.DecreaseAmount(food)
+            }
+        })
+        return isFoodPicked
+    }
+
+
+    PlacePheromone(data, dir){
+        var purpose = false
+        switch(this.purpose){
+            case e_Type.TOWARDS_FOOD:
+                purpose = e_Type.TOWARDS_HOME
+                break
+            case e_Type.TOWARDS_HOME:
+                purpose = e_Type.TOWARDS_FOOD
+                break
+            default:
+                console.log("Invalid purpose.")    
+        }
+        data.AddPheromone(this.pos, dir, purpose)
+        Object.assign(this.prevPheromone.pos, this.pos) 
+    }
+
+    HandlePheromonePlacement(dt, data){
+        this.pheromonePlaceDelay -= dt
+        if (this.pheromonePlaceDelay <= 0){
+            var delay
+            switch(this.purpose){
+                case e_Type.TOWARDS_HOME:
+                    delay = data.PHEROMONE_PLACEMENT_DELAY_TOHOME
+                    break
+                case e_Type.TOWARDS_FOOD:
+                    delay = data.PHEROMONE_PLACEMENT_DELAY_TOFOOD
+                    break
+                default:
+                    console.log("Invalid purpose.")
+            }
+            this.pheromonePlaceDelay = 1 + Math.random() * delay
+            this.PlacePheromone(data, this.GetDirTowardsObject(this.prevPheromone))
+        }
     }
 
     DistanceBetweenObjects(source, destination) {
         var distx = Math.abs(source.pos.x - destination.pos.x)
         var disty = Math.abs(source.pos.y - destination.pos.y)
-        return Math.sqrt(distx**2 + disty**2)
+        return Math.sqrt(distx*distx + disty*disty)
     }
 
-    DirTowards(obj){
+    DistanceToObject(obj) {
+        var distx = Math.abs(this.pos.x - obj.pos.x)
+        var disty = Math.abs(this.pos.y - obj.pos.y)
+        return Math.sqrt(distx*distx + disty*disty)
+    }
+
+    GetDirTowardsObject(obj){
         var radian = Math.atan2(obj.pos.y - this.pos.y, obj.pos.x - this.pos.x )
         return {x: Math.cos(radian), y: Math.sin(radian)}
+    }
+
+    SteerDirTowards(original, goal, data) {
+        var newDir = {x: 0, y:0}
+        newDir.x = original.x + goal.x / data.DIR_ADJUSTMENT;
+        newDir.y = original.y + goal.y / data.DIR_ADJUSTMENT;
+        return this.NormalizeDir(newDir)
+    }
+
+    ReverseDir(dir){
+        dir.x *= -1
+        dir.y *= -1
+        return dir
     }
 }
