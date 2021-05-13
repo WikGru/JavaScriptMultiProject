@@ -63,10 +63,10 @@ function draw(entity) {
                 }
                 ctx.rotate(Math.PI / 180 * 90 + Math.atan2(entity.dir.y, entity.dir.x));
                 ctx.beginPath();
-                ctx.lineTo(0, -5);
-                ctx.lineTo(3, 3);
-                ctx.lineTo(0, 1)
-                ctx.lineTo(-3, 3);
+                ctx.lineTo(0, -3);
+                ctx.lineTo(1, 1);
+                ctx.lineTo(0, 0)
+                ctx.lineTo(-1, 1);
                 ctx.fill();
             }
             break;
